@@ -15,6 +15,8 @@ RG_DEFAULT_QUERY_PATTERNS='*.sql
 # 사용: rg_canon_path <경로> <기준 디렉터리>
 rg_canon_path() {
   local p="$1" base="$2" part dir rest="" n
+  # 따옴표 안 ~ 는 의도한 글자 그대로의 비교다.
+  # shellcheck disable=SC2088
   case "$p" in
     "~") p="$HOME" ;;
     "~/"*) p="$HOME/${p#\~/}" ;;

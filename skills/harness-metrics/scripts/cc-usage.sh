@@ -224,14 +224,14 @@ if [ -n "$GROUP_A" ] || [ -n "$GROUP_B" ]; then
   MIXED_TAG=""
   # 그룹 합계: N TURNS CALLS I O CC CR COST CORR REDO
   group_totals() {
-    local ids="$1" id f s q
+    local ids="$1" id f s
     local N=0 TT=0 TC=0 TI=0 TO=0 TCC=0 TCR=0 TCOST=0 TCORR=0 TREDO=0
-    local START TURNS TOOLS CALLS I O CC CR MM MODELS SMODELS SN SI SO SCC SCR COST NM
-    local qt qcorr qdeny qintr qerrs qredo qcalls
+    local START TURNS TOOLS CALLS I O CC CR MODELS SMODELS SN SI SO SCC SCR COST NM
+    local qcorr qredo
     for id in $(printf '%s' "$ids" | tr ',' ' '); do
       f=$(resolve_id "$id") || return 1
-      IFS=$'\t' read -r START TURNS TOOLS CALLS I O CC CR MM MODELS SMODELS SN SI SO SCC SCR COST NM <<<"$(sess_stats "$f")"
-      IFS=$'\t' read -r qt qcorr qdeny qintr qerrs qredo qcalls <<<"$(quality_stats "$f")"
+      IFS=$'\t' read -r START TURNS TOOLS CALLS I O CC CR _ MODELS SMODELS SN SI SO SCC SCR COST NM <<<"$(sess_stats "$f")"
+      IFS=$'\t' read -r _ qcorr _ _ _ qredo _ <<<"$(quality_stats "$f")"
       N=$((N+1)); TT=$((TT+TURNS)); TC=$((TC+CALLS)); TI=$((TI+I)); TO=$((TO+O))
       TCC=$((TCC+CC)); TCR=$((TCR+CR)); TCORR=$((TCORR+qcorr)); TREDO=$((TREDO+qredo))
       TCOST=$(awk -v a="$TCOST" -v b="$COST" 'BEGIN{printf "%.4f", a+b}')

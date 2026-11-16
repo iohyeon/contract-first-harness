@@ -1,0 +1,65 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: tests (${{ matrix.os }}, ${{ matrix.bash }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # GNU 도구(sed, grep, awk, coreutils) + bash 5
+          - os: ubuntu-latest
+            bash: bash
+          # BSD 도구 + 시스템 bash 3.2
+          - os: macos-latest
+            bash: /bin/bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: jq 설치 확인
+        run: |
+          if ! command -v jq >/dev/null 2>&1; then
+            if command -v apt-get >/dev/null 2>&1; then
+              sudo apt-get update -qq && sudo apt-get install -y -qq jq
+            else
+              brew install jq
+            fi
+          fi
+          jq --version
+
+      - name: 도구 버전
+        run: |
+          "${{ matrix.bash }}" -c 'echo "bash $BASH_VERSION"'
+          git --version
+          if sed --version >/dev/null 2>&1; then sed --version | head -n 1; else echo "sed: BSD"; fi
+          ls -l "$(command -v awk)"
+
+      - name: bash tests/run.sh
+        env:
+          TEST_BASH: ${{ matrix.bash }}
+        run: '"${{ matrix.bash }}" tests/run.sh'
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck 설치 확인
+        run: |
+          command -v shellcheck >/dev/null 2>&1 || { sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck; }
+          shellcheck --version
+
+      - name: shellcheck (warning 이상)
+        run: |
+          find tests -type f -name '*.sh' -print0 | sort -z | xargs -0 \
+            shellcheck -S warning \
+              hooks/*.sh hooks/lib/*.sh bin/review-gate \
+              skills/harness-metrics/scripts/*.sh

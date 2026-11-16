@@ -3,8 +3,12 @@
 
 TESTS_HOOKS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 PLUGIN_DIR=$(cd "$TESTS_HOOKS_DIR/../.." && pwd -P)
+# 아래 경로 변수는 이 파일을 source 하는 테스트가 쓴다.
+# shellcheck disable=SC2034
 APPROVAL_HOOK="$PLUGIN_DIR/hooks/approval-gate.sh"
+# shellcheck disable=SC2034
 REVIEW_HOOK="$PLUGIN_DIR/hooks/review-gate.sh"
+# shellcheck disable=SC2034
 REVIEW_CLI="$PLUGIN_DIR/bin/review-gate"
 BASH_BIN="${TEST_BASH:-bash}"
 

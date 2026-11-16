@@ -33,6 +33,8 @@ user-invocable: true
 
 spec 파일이 없으면 플랜에 그 사실을 명시한다. 나중에 final-verify 3층이 기준선 부재로 판정 불가가 된다.
 
+도메인 게이트 파일(`.claude/harness/domain/<slug>.md`)이 있으면 참고 입력으로 읽는다. 기준선은 spec이며, domain 파일의 다이어그램과 장애 시나리오는 태스크의 검증 방법을 쓸 때만 참고한다.
+
 `env-preflight` 결과(`.claude/harness/report/preflight-<slug>-<YYYYMMDD>.md`)가 있으면 전제 표와 검증 방법을 쓸 때 참고한다. 실측된 런타임 버전, 빌드 명령, 포트를 그대로 옮긴다.
 
 ## 산출물
