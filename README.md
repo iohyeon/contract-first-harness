@@ -9,18 +9,16 @@
 ## 흐름
 
 ```mermaid
-flowchart LR
+flowchart TB
   subgraph D[도메인 게이트: 해당 시]
+    direction LR
     RA[requirements-analysis]
     EC[ecommerce-design]
     AI[analyze-external-integration]
   end
   Q([요구사항]) --> D
   D --> G[design-grill: 해당 시]
-  Q -. 도메인 게이트 해당 없음 .-> G
   G --> S[spec-interview]
-  D -. 설계안 없음 .-> S
-  Q -. 둘 다 해당 없음 .-> S
   S --> B[plan-build]
   B --> V[plan-verify]
   V --> H{사람이 승인 줄 변경}
@@ -34,7 +32,7 @@ flowchart LR
   R --> K[(commit / push)]
 ```
 
-점선은 건너뛸 수 있는 경로입니다. 도메인 게이트와 design-grill은 해당할 때만 쓰고, spec-interview부터는 모든 작업이 거칩니다.
+해당하지 않는 선택 단계는 건너뛰고 spec-interview로 갑니다. spec-interview부터는 모든 작업이 거칩니다.
 
 ## 단계별로 막는 실수
 
