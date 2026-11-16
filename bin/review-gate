@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+# review-gate: 사용자가 '!' 로 직접 실행하는 확인 기록 CLI.
+#
+#   review-gate record [--head] code  "<코드 피드백>"
+#   review-gate record [--head] query "<실행한 SQL과 결과 요약>"
+#   review-gate record [--head] loose "<느슨하게 가는 이유>"
+#   review-gate status
+#   review-gate enable | disable
+#
+# 내용 자리에 - 를 주면 표준 입력에서 읽는다.
+# --head 를 주면 작업 트리 대신 HEAD^{tree} 에 기록한다(커밋 뒤 push 만 남았을 때).
+
+# 심볼릭 링크로 설치돼도 플러그인 루트를 찾는다.
+SELF="$0"
+while [ -L "$SELF" ]; do
+  LINK=$(readlink "$SELF")
+  case "$LINK" in
+    /*) SELF="$LINK" ;;
+    *) SELF="$(dirname "$SELF")/$LINK" ;;
+  esac
+done
+ROOT=$(cd "$(dirname "$SELF")/.." && pwd -P)
+
+# shellcheck source=../hooks/lib/review-gate-core.sh
+. "$ROOT/hooks/lib/review-gate-core.sh" || {
+  printf 'review-gate: %s 를 읽지 못했습니다.\n' "$ROOT/hooks/lib/review-gate-core.sh" >&2
+  exit 1
+}
+
+usage() {
+  cat <<'EOF'
+사용법:
+  review-gate record [--head] code  "<코드 피드백>"
+  review-gate record [--head] query "<실행한 SQL과 결과 요약>"
+  review-gate record [--head] loose "<느슨하게 가는 이유>"
+  review-gate status
+  review-gate enable
+  review-gate disable
+
+기록은 $(git rev-parse --git-dir)/review-gate/<kind>-<tree>.md 에 쌓입니다.
+기본 tree 는 작업 트리 전체(추적 + 무시되지 않은 미추적)의 트리 해시입니다.
+EOF
+}
+
+die() {
+  printf 'review-gate: %s\n' "$1" >&2
+  exit 1
+}
+
+DIR="$PWD"
+rg_is_repo "$DIR" || die "git 저장소 안에서 실행하세요."
+
+short() { printf '%s' "$1" | cut -c1-12; }
+
+mark() {
+  # 사용: mark <kind> <tree>
+  if rg_has_record "$DIR" "$1" "$2"; then printf '있음'; else printf '없음'; fi
+}
+
+status_for() {
+  # 사용: status_for <제목> <tree> <mode>
+  local title="$1" tree="$2" mode="$3" base files need
+  if [ -z "$tree" ]; then
+    printf '\n[%s] 트리 없음\n' "$title"
+    return
+  fi
+  base=$(rg_base_tree "$DIR" "$mode")
+  files=$(rg_query_files "$DIR" "$base" "$tree")
+  need="code"
+  [ -n "$files" ] && need="code, query"
+  printf '\n[%s] tree %s\n' "$title" "$tree"
+  printf '  비교 기준 tree: %s\n' "$base"
+  if [ -n "$files" ]; then
+    printf '  바뀐 쿼리 파일:\n'
+    printf '%s\n' "$files" | sed 's/^/    /'
+  else
+    printf '  바뀐 쿼리 파일: 없음\n'
+  fi
+  printf '  필요한 기록: %s (또는 loose)\n' "$need"
+  printf '  있는 기록: code %s, query %s, loose %s\n' \
+    "$(mark code "$tree")" "$(mark query "$tree")" "$(mark loose "$tree")"
+  if rg_check "$DIR" "$tree" "$mode"; then
+    printf '  판정: 통과\n'
+  else
+    printf '  판정: 거부 (빠진 것: %s)\n' "$RG_MISSING"
+  fi
+}
+
+cmd_status() {
+  local enabled="꺼짐" branch
+  rg_enabled "$DIR" && enabled="켜짐"
+  branch=$(git -C "$DIR" symbolic-ref --short -q HEAD 2>/dev/null) || branch="(분리된 HEAD)"
+  printf '저장소: %s\n' "$(rg_toplevel "$DIR")"
+  printf '브랜치: %s\n' "$branch"
+  printf 'review-gate: %s\n' "$enabled"
+  printf '기록 위치: %s\n' "$(rg_record_dir "$DIR")"
+  printf '쿼리 패턴: %s\n' "$(rg_query_patterns "$DIR" | tr '\n' ' ')"
+  status_for "commit 판정, 작업 트리 전체" "$(rg_worktree_tree "$DIR")" commit
+  status_for "push, PR 판정, HEAD" "$(rg_head_tree "$DIR")" push
+}
+
+cmd_record() {
+  local use_head=0 kind body tree f
+  if [ "${1:-}" = --head ]; then
+    use_head=1
+    shift
+  fi
+  kind="${1:-}"
+  case "$kind" in
+    code|query|loose) ;;
+    *) usage >&2; die "kind 는 code, query, loose 중 하나입니다." ;;
+  esac
+  shift
+  if [ $# -eq 0 ]; then
+    die "기록할 내용을 따옴표로 감싸 주세요. 예: review-gate record $kind \"...\""
+  fi
+  if [ "$1" = - ]; then
+    body=$(cat)
+  else
+    body="$*"
+  fi
+  if [ -z "$(printf '%s' "$body" | tr -d '[:space:]')" ]; then
+    die "빈 내용은 기록하지 않습니다."
+  fi
+  if [ "$use_head" -eq 1 ]; then
+    tree=$(rg_head_tree "$DIR")
+    [ -n "$tree" ] || die "HEAD 커밋이 없습니다."
+  else
+    tree=$(rg_worktree_tree "$DIR")
+    [ -n "$tree" ] || die "작업 트리의 트리 해시를 계산하지 못했습니다."
+  fi
+  f=$(rg_write_record "$DIR" "$kind" "$tree" "$body") || die "기록 파일을 쓰지 못했습니다."
+  printf '%s 기록을 남겼습니다. tree %s\n' "$kind" "$(short "$tree")"
+  printf '파일: %s\n' "$f"
+  rg_enabled "$DIR" || printf '참고: 이 저장소는 review-gate 가 꺼져 있습니다(review-gate enable).\n'
+}
+
+case "${1:-}" in
+  record) shift; cmd_record "$@" ;;
+  status) cmd_status ;;
+  enable)
+    git -C "$DIR" config review-gate.enabled true || die "설정을 쓰지 못했습니다."
+    printf '이 저장소에서 review-gate 를 켰습니다.\n'
+    ;;
+  disable)
+    git -C "$DIR" config --unset review-gate.enabled >/dev/null 2>&1
+    printf '이 저장소에서 review-gate 를 껐습니다.\n'
+    ;;
+  -h|--help|help|'') usage ;;
+  *) usage >&2; exit 1 ;;
+esac

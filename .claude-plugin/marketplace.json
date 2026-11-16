@@ -1,0 +1,16 @@
+{
+  "name": "iohyeon",
+  "owner": {
+    "name": "iohyeon"
+  },
+  "metadata": {
+    "description": "iohyeon의 Claude Code 플러그인"
+  },
+  "plugins": [
+    {
+      "name": "contract-first-harness",
+      "source": "./",
+      "description": "계약 우선 개발 하네스: spec, 플랜 반증, 사람 승인 게이트, 이탈 감지, 종료 검증, 비용 측정"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "contract-first-harness",
+  "version": "0.1.0",
+  "description": "계약을 먼저 굳히고, 플랜을 반증하고, 사람이 승인한 플랜만 실행하고, 태스크마다 이탈을 잡는 Claude Code 개발 하네스",
+  "author": { "name": "iohyeon", "email": "iohyeonsz@gmail.com" },
+  "homepage": "https://github.com/iohyeon/contract-first-harness",
+  "repository": "https://github.com/iohyeon/contract-first-harness",
+  "license": "MIT",
+  "keywords": ["harness", "planning", "verification", "hooks", "codex"]
+}

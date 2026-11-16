@@ -1,0 +1,22 @@
+{
+  "description": "플랜 승인 게이트와 저장소별 리뷰 기록 게이트",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/approval-gate.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/review-gate.sh",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}
