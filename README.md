@@ -187,7 +187,7 @@ bash skills/harness-metrics/scripts/cc-usage.sh --group-a <세션ID들> --group-
 | 테스트 152개 통과 | macOS bash 3.2, Ubuntu bash (GitHub Actions) | `bash tests/run.sh` |
 | 플러그인 설치 후 스킬 15개 로드 | 빈 git 저장소, Claude Code 2.1.282, local 범위 설치 (2026-11-17) | 위 설치 명령 뒤 `claude -p ok --output-format stream-json --verbose` 의 init 메시지에서 `contract-first-harness:` 항목 수 확인 |
 | 미승인 플랜 실행 중 편집 거부, AI의 승인 줄 변경 거부, 사람 승인 뒤 편집 통과 | 같은 조건 | `.claude/harness/plan/<slug>.md` 에 미승인 줄, `.claude/harness/active-plan` 에 그 경로를 두고 편집 요청 |
-| 하네스 효과 | 측정 전 | [docs/measurement.md](docs/measurement.md) 절차로 예제 백엔드에서 측정한 뒤 사례로 이 자리에 공개합니다 |
+| 하네스 효과 | 측정 전 | [docs/measurement.md](docs/measurement.md) 절차로 예제 백엔드에서 측정한 뒤 사례로 이 자리에 공개합니다. 측정 대상은 단계별이 아니라 하네스 전체의 효과입니다 |
 
 ## 구조
 
@@ -211,9 +211,11 @@ bash skills/harness-metrics/scripts/cc-usage.sh --group-a <세션ID들> --group-
 - **확인 기록을 코드 트리 해시에 묶습니다.** "확인했다"는 말이 아니라 어떤 트리를 확인했는지가 기록됩니다.
 - **도메인 판단은 선택 단계로 둡니다.** 커머스와 외부 연동 기준은 해당하는 작업에서만 강제하고, 그 결과는 spec의 확정된 결정으로 넘어갑니다.
 
-## 훅의 동작 범위
+## 그래도 남는 것
 
-훅은 도구 호출의 입력 문자열과 경로를 검사합니다. 변수나 다른 스크립트를 거쳐 우회하는 명령까지 해석하지는 않습니다. `approval-gate`는 Bash에서 `codex exec`와 승인 줄 조작만 막고, 셸 리다이렉션 쓰기는 막지 않습니다. 강제력은 "실수로 넘어가지 않게" 하는 수준으로 설계했습니다.
+- 하네스 효과는 아직 측정하지 않았습니다. 측정하더라도 하네스 전체의 효과이고, 단계별 효과는 분리하지 않습니다.
+- Codex 경로(`codex-handoff`)는 측정하지 않았습니다. Codex는 Claude Code 프로필과 별도의 설정과 지침 파일을 읽어 통제할 변수가 하나 늘어나므로, 측정에서는 `plan-execute`만 씁니다.
+- 훅은 도구 호출의 입력 문자열과 경로를 검사합니다. 변수나 다른 스크립트를 거쳐 우회하는 명령까지 해석하지는 않습니다. `approval-gate`는 Bash에서 `codex exec`와 승인 줄 조작만 막고, 셸 리다이렉션 쓰기는 막지 않습니다. 강제력은 "실수로 넘어가지 않게" 하는 수준으로 설계했습니다.
 
 ## 개발
 
@@ -235,7 +237,7 @@ bash tests/run.sh
 
 ## 관련 글
 
-블로그 글은 발행한 뒤 이 자리에 연결합니다.
+- [플랜을 깨는 AI와 승인하는 사람: 계약 우선 개발 하네스를 만들었습니다](https://develop-tracking.tistory.com/entry/플랜을-깨는-AI와-승인하는-사람-계약-우선-개발-하네스를-만들었습니다)
 
 ## 라이선스
 
