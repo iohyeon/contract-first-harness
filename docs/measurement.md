@@ -51,7 +51,7 @@
 
 ### 비용과 품질 신호
 
-`cc-usage.sh` 의 그룹 비교로 쌍마다 한 번씩 잽니다. 하네스 있음 그룹에는 구현 세션뿐 아니라 spec-interview, plan-build, plan-verify, final-verify 세션도 모두 넣습니다. 이 세션들을 빼면 하네스 쪽 비용이 실제보다 작게 나옵니다.
+`cc-usage.sh` 의 그룹 비교로 쌍마다 한 번씩 측정합니다. 하네스 있음 그룹에는 구현 세션뿐 아니라 spec-interview, plan-build, plan-verify, final-verify 세션도 모두 넣습니다. 이 세션들을 빼면 하네스 쪽 비용이 실제보다 작게 나옵니다.
 
 ```
 cc-usage.sh --subagents --group-a <하네스 있음 세션들> --group-b <하네스 없음 세션들>
@@ -93,7 +93,7 @@ cc-usage.sh --subagents --group-a <하네스 있음 세션들> --group-b <하네
 
 ### 원문 보존
 
-게이트 출력은 고치거나 요약하지 않고 원문 그대로 보존합니다. `.claude/harness/report/` 의 파일은 같은 이름으로 다시 만들어질 수 있고, 플랜 검증 결과 절은 재실행 때 통째로 바뀌며, review-gate 기록은 git-dir 안에 있어 커밋되지 않습니다. 그래서 게이트가 끝날 때마다 사본을 따로 둡니다.
+게이트 출력은 고치거나 요약하지 않고 원문 그대로 보존합니다. `.claude/harness/report/` 의 파일은 같은 이름으로 다시 만들어질 수 있고, 플랜 검증 결과 절은 재실행 때 전체가 바뀌며, review-gate 기록은 git-dir 안에 있어 커밋되지 않습니다. 그래서 게이트가 끝날 때마다 사본을 따로 둡니다.
 
 | 원본 | 사본 위치 |
 |---|---|
